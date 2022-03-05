@@ -68,7 +68,9 @@ def obstacles():
 
 #check node inside obstacles
 def check_obstacle(y, x, img_clr):
-    x = height -x
+    x = 250 - x
+    if x >= 250 or x < 0 or y >=400 or y < 0:
+        return True
     if img_clr[x][y] == 255:
         return True
     else:
@@ -95,14 +97,12 @@ def get_coords(img_clr):
     while start_x>width or start_y>height or start_x<=0 or start_y<=0:
         print("They are outside the boundary")
         start_x, start_y = ask_input(start)
-        start_y = height - start_y
     print("Start inside the boundary")
 
     #start points in obstacles
     while check_obstacle(start_x, start_y, img_clr):
         print("Inside the obstacle")
         start_x, start_y = ask_input(start)
-        start_y = height - start_y
 
     start_node = (start_x, start_y) 
 
@@ -112,15 +112,13 @@ def get_coords(img_clr):
     while goal_x>width or goal_y>height or start_x<=0 or start_y<=0:
         print("They are outside boundary")
         goal_x, goal_y = ask_input(start)
-        goal_y = height - start_y
     print("Goal inside the boundary")
 
     #goal points in obstacles
-    while check_obstacle(goal_x, goal_y, img_clr):
+    while check_obstacle(goal_x, height-goal_y, img_clr):
         print("Inside the obstacle")
         goal_x, goal_y = ask_input(start)
-        goal_y = height - goal_y
-
+        
     goal_node = (goal_x, goal_y)
     return start_x, start_y, goal_x, goal_y, start_node, goal_node
 
@@ -142,24 +140,25 @@ def dijkstra(start_node, goal_node, img_clr):
     solvable = True
     parent = {}
     total_cost = {}
-    visited = []
+    visited = set()
+    visited_list = []
     q = PriorityQueue()
     for i in range(0, width):
         for j in range(0, height):
             total_cost[str([i,j])] = inf
     total_cost[str(start_node)] = 0
-    visited.append(str(start_node))
+    visited.add(str(start_node))
+    visited_list.append(str(start_node))
     node = Node(start_node, 0, None)
     parent[str(node.pos)] = node
     q.put([node.cost, node.pos])
     while q:
-        while not q.empty():
-            cur_node = q.get()
-            node = parent[str(cur_node[1])]
-            if str(cur_node) not in visited: 
-                break
-        else:
+        if q.empty():
+            print("Unknown error occurs")
+            print("Fail to find the path")
             break
+        cur_node = q.get()
+        node = parent[str(cur_node[1])]
         if check_solution(cur_node[1], goal_node):
             print("at goal")
             print("Time cost: %s seconds" %(time.time() - start_time))
@@ -174,7 +173,8 @@ def dijkstra(start_node, goal_node, img_clr):
                             total_cost[str(next_node)] = cur_cost
                             parent[str(next_node)].parent = node
                     else:
-                        visited.append(str(next_node))
+                        visited.add(str(next_node))
+                        visited_list.append(str(next_node))
                         absolute_cost = cost + total_cost[str(node.pos)]
                         total_cost[str(next_node)] = absolute_cost
                         new_node = Node(next_node, absolute_cost, parent[str(node.pos)])
@@ -187,7 +187,7 @@ def dijkstra(start_node, goal_node, img_clr):
         backtracked.append(parent_node.pos)
         print("Position:", parent_node.pos, " Cost:", parent_node.cost)
         parent_node = parent_node.parent
-    return backtracked, visited
+    return backtracked, visited_list
 
 #visualization
 def visual(path, img, visited, out):
@@ -208,7 +208,6 @@ def visual(path, img, visited, out):
 
 def main():
     ori_map, img_clr = obstacles()
-    print(check_obstacle(80,150,img_clr))
     start_x, start_y, goal_x, goal_y, start_node, goal_node = get_coords(img_clr)
     
     #dijkstra
