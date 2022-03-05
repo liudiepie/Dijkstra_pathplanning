@@ -18,4 +18,5 @@ Images show the original image, added clearance image, and path image.
 The exploration.txt shows every points during the algorithm.  
 The shortest_path.txt shows every points that Dijkstra finds the fastest path.  
 The video performs the process how Dijkstra explores the image.  
-
+Result of the above example:  
+![](path.png)  
